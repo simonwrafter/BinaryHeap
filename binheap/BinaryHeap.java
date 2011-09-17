@@ -271,6 +271,7 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
+			// FIXME Itr.remove() needs implementing!!
 		}
 	}
 }
