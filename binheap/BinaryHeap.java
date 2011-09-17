@@ -15,10 +15,8 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 		cmp = null;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public BinaryHeap(Comparator<E> cmp) {
-		array = (HeapEntry<E>[]) new Object[10];
-		size = 0;
+		this();
 		this.cmp = cmp; 
 	}
 	
@@ -67,17 +65,13 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 			reallocate();
 		}
 		array[size] = new HeapEntry<E>(arg0, size);
-		percolateUp(size);
-		size++;
+		percolateUp(size++);
 		return true;
 	}
 	
 	@Override
 	public E peek() {
-		if (size == 0) {
-			return null;
-		}
-		return array[0].entry;
+		return (size == 0) ? null : array[0].entry;
 	}
 	
 	@Override
@@ -128,6 +122,8 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 		if (compare(e.entry, newValue) > 0) {
 			e.entry = newValue;
 			percolateUp(e.position);
+		} else {
+			throw new IllegalArgumentException(); 
 		}
 	}
 	
@@ -144,10 +140,12 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 		if (compare(e.entry, newValue) < 0) {
 			e.entry = newValue;
 			percolateDown(e.position);
+		} else {
+			throw new IllegalArgumentException(); 
 		}
 	}
 	
-	// Private helper classes and methods
+// Private helper classes and methods
 	
 	private static class HeapEntry<E> {
 		private int position;
@@ -187,18 +185,14 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 		
 		if (childIndex1 < size && childIndex2 < size) {
 			if (compare(array[childIndex1].entry, array[childIndex2].entry) < 0) {
-				child = array[childIndex1];
-				childIndex0 = childIndex1;
+				child = array[childIndex0 = childIndex1];
 			} else {
-				child = array[childIndex2];
-				childIndex0 = childIndex2;
+				child = array[childIndex0 = childIndex2];
 			}
 		} else if (childIndex1 < size) {
-			child = array[childIndex1];
-			childIndex0 = childIndex1;
+			child = array[childIndex0 = childIndex1];
 		} else if (childIndex2 < size) {
-			child = array[childIndex2];
-			childIndex0 = childIndex2;
+			child = array[childIndex0 = childIndex2];
 		} else {
 			child = null;
 		}
