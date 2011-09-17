@@ -1,24 +1,23 @@
 package binheap;
 
-import java.util.AbstractQueue;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Queue;
-import java.math.*;
+import java.util.*;
 
-public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
+public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implements Queue<E> {
 	
+	Comparator<E> cmp;
 	HeapEntry<E>[] array;
 	int size;
 	
-	//@SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public BinaryHeap() {
 		array = (HeapEntry<E>[]) new Object[10];
 		size = 0;
+		cmp = new Comp<E>();
 	}
 	
 	public BinaryHeap(Comparator<E> cmp) {
-		// TODO Auto-generated constructor stub
+		this();
+		this.cmp = cmp; 
 	}
 	
 	/**
@@ -64,6 +63,7 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 			reallocate();
 		}
 		array[size] = new HeapEntry<E>(arg0, size);
+		percolateUp(size);
 		size++;
 		return true;
 	}
@@ -133,8 +133,8 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	
 	//@SuppressWarnings("hiding")
 	private static class HeapEntry<E> {
-		int position;
-		E entry;
+		private int position;
+		private E entry;
 		
 		private HeapEntry(E entry, int position) {
 			this.position = position;
@@ -142,19 +142,46 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 		}
 	}
 	
+	/**
+	 * Internal auxiliary method to percolate item up the heap.
+	 * @param {code index} the index at which the percolate starts
+	 */
 	private void percolateUp(int index){
-		// TODO Auto-generated method stub
+		if (index != 0) {
+			E child = array[index].entry;
+			E parent = array[parentIndex(index)].entry;
+			if (compare(child, parent) < 0) {
+				array[index].entry = child;
+				array[parentIndex(index)].entry = parent;
+				percolateUp(parentIndex(index));
+			}
+		}
 	}
 	
+	/**
+	 * Internal auxiliary method to percolate item down the heap.
+	 * @param {code index} the index at which the percolate starts
+	 */
 	private void percolateDown(int index){
-		// TODO Auto-generated method stub
+		
 	}
 	
 	private void reallocate() {
-		// TODO Auto-generated method stub
+		array = Arrays.copyOf(array, size*2);
 	}
 	
-	private void compare(E e) {
-		// TODO Auto-generated method stub
+	private int parentIndex(int a) {
+		return (a-1)/2;
+	}
+	
+	private int compare(E e1, E e2) {
+		return (cmp==null) ? e1.compareTo(e2) : cmp.compare(e1, e2);
+	}
+	
+	private class Comp<E extends Comparable<E>> implements Comparator<E> {
+		@Override
+		public int compare(E o1, E o2) {
+			return o1.compareTo(o2);
+		}
 	}
 }
