@@ -8,14 +8,14 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	HeapEntry<E>[] array;
 	int size;
 	
-	@SuppressWarnings("unchecked") // FIXME @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public BinaryHeap() {
 		array = (HeapEntry<E>[]) new Object[10];
 		size = 0;
 		cmp = null;
 	}
 	
-	@SuppressWarnings("unchecked") // FIXME @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public BinaryHeap(Comparator<E> cmp) {
 		array = (HeapEntry<E>[]) new Object[10];
 		size = 0;
@@ -28,7 +28,9 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	 * @param e HeapEntry object to be removed
 	 */
 	public void delete(HeapEntry<E> e) {
-		// TODO Auto-generated method stub
+		int pos = e.position;
+		swap(array[pos], array[--size]);
+		percolateDown(pos);
 	}
 	
 	/**
@@ -72,14 +74,17 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	
 	@Override
 	public E peek() {
-		// TODO Auto-generated method stub
-		return null;
+		if (size == 0) {
+			return null;
+		}
+		return array[0].entry;
 	}
 	
 	@Override
 	public E poll() {
-		// TODO Auto-generated method stub
-		return null;
+		swap(array[0], array[--size]);
+		percolateDown(0);
+		return array[size].entry;
 	}
 	
     /**
@@ -122,6 +127,7 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	public void decreaseKey(HeapEntry<E> e, E newValue) {
 		if (compare(e.entry, newValue) > 0) {
 			e.entry = newValue;
+			percolateUp(e.position);
 		}
 	}
 	
@@ -137,13 +143,13 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	public void increaseKey(HeapEntry<E> e, E newValue) {
 		if (compare(e.entry, newValue) < 0) {
 			e.entry = newValue;
+			percolateDown(e.position);
 		}
 	}
 	
 	// Private helper classes and methods
 	
 	private static class HeapEntry<E> {
-		@SuppressWarnings("unused") // FIXME @SuppressWarnings("unused")
 		private int position;
 		private E entry;
 		
@@ -163,10 +169,7 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 			HeapEntry<E> child = array[index];
 			HeapEntry<E> parent = array[parentIndex];
 			if (compare(child.entry, parent.entry) < 0) {
-				array[index] = parent;
-				array[parentIndex] = child;
-				parent.position = index;
-				child.position = parentIndex;
+				swap(parent, child);
 				percolateUp(parentIndex);
 			}
 		}
@@ -203,20 +206,26 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 		if (child != null) {
 			HeapEntry<E> parent = array[index];
 			if (compare(parent.entry, child.entry) > 0) {
-				array[index] = child;
-				array[childIndex0] = parent;
-				child.position = childIndex0;
-				parent.position = index;
+				swap(parent, child);
 				percolateDown(childIndex0);
 			}
 		}
+	}
+	
+	private void swap(HeapEntry<E> e1, HeapEntry<E> e2) {
+		int index1 = e1.position;
+		int index2 = e2.position;
+		array[index1] = e2;
+		array[index1].position = index1;
+		array[index2] = e1;
+		array[index2].position = index2;
 	}
 	
 	private void reallocate() {
 		array = Arrays.copyOf(array, size*2);
 	}
 	
-	@SuppressWarnings("unchecked") // FIXME @SuppressWarnings("unchecked") 
+	@SuppressWarnings("unchecked") 
 	private int compare(E e1, E e2) {
 		return (cmp==null) ? ((Comparable<E>) e1).compareTo(e2) : cmp.compare(e1, e2);
 	}
