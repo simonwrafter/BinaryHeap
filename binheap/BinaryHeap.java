@@ -2,21 +2,23 @@ package binheap;
 
 import java.util.*;
 
-public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implements Queue<E> {
+public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	
 	Comparator<E> cmp;
 	HeapEntry<E>[] array;
 	int size;
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked") // FIXME @SuppressWarnings("unchecked")
 	public BinaryHeap() {
 		array = (HeapEntry<E>[]) new Object[10];
 		size = 0;
-		cmp = new Comp<E>();
+		cmp = null;
 	}
 	
+	@SuppressWarnings("unchecked") // FIXME @SuppressWarnings("unchecked")
 	public BinaryHeap(Comparator<E> cmp) {
-		this();
+		array = (HeapEntry<E>[]) new Object[10];
+		size = 0;
 		this.cmp = cmp; 
 	}
 	
@@ -74,6 +76,12 @@ public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implem
 		return null;
 	}
 	
+	@Override
+	public E poll() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
     /**
      * Returns an iterator over the elements in this queue. The iterator
      * does not return the elements in any particular order.
@@ -81,15 +89,8 @@ public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implem
      * @return an iterator over the elements in this queue
      */
 	@Override
-	public E poll() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
 	public Iterator<E> iterator() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Itr();
 	}
 	
 	/**
@@ -99,8 +100,14 @@ public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implem
 	 * @return The HeapEntry of the inserted item
 	 */
 	public HeapEntry<E> insert(E e) {
-		// TODO Auto-generated method stub
-		return null;
+		if (size == array.length) {
+			reallocate();
+		}
+		HeapEntry<E> newEntry = new HeapEntry<E>(e, size);
+		array[size] = newEntry;
+		percolateUp(size);
+		size++;
+		return newEntry;
 	}
 	
 	/**
@@ -113,7 +120,9 @@ public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implem
 	 * old value
 	 */
 	public void decreaseKey(HeapEntry<E> e, E newValue) {
-		// TODO Auto-generated method stub
+		if (compare(e.entry, newValue) > 0) {
+			e.entry = newValue;
+		}
 	}
 	
 	/**
@@ -126,13 +135,15 @@ public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implem
 	 * old value
 	 */
 	public void increaseKey(HeapEntry<E> e, E newValue) {
-		// TODO Auto-generated method stub
+		if (compare(e.entry, newValue) < 0) {
+			e.entry = newValue;
+		}
 	}
 	
 	// Private helper classes and methods
 	
-	//@SuppressWarnings("hiding")
 	private static class HeapEntry<E> {
+		@SuppressWarnings("unused") // FIXME @SuppressWarnings("unused")
 		private int position;
 		private E entry;
 		
@@ -148,12 +159,15 @@ public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implem
 	 */
 	private void percolateUp(int index){
 		if (index != 0) {
-			E child = array[index].entry;
-			E parent = array[parentIndex(index)].entry;
-			if (compare(child, parent) < 0) {
-				array[index].entry = child;
-				array[parentIndex(index)].entry = parent;
-				percolateUp(parentIndex(index));
+			int parentIndex = (index-1)/2;
+			HeapEntry<E> child = array[index];
+			HeapEntry<E> parent = array[parentIndex];
+			if (compare(child.entry, parent.entry) < 0) {
+				array[index] = parent;
+				array[parentIndex] = child;
+				parent.position = index;
+				child.position = parentIndex;
+				percolateUp(parentIndex);
 			}
 		}
 	}
@@ -162,26 +176,98 @@ public class BinaryHeap<E extends Comparable<E>> extends AbstractQueue<E> implem
 	 * Internal auxiliary method to percolate item down the heap.
 	 * @param {code index} the index at which the percolate starts
 	 */
-	private void percolateDown(int index){
+	private void percolateDown(int index) {
+		int childIndex1 = index*2+1;
+		int childIndex2 = index*2+2;
+		int childIndex0 = 0;
+		HeapEntry<E> child;
 		
+		if (childIndex1 < size && childIndex2 < size) {
+			if (compare(array[childIndex1].entry, array[childIndex2].entry) < 0) {
+				child = array[childIndex1];
+				childIndex0 = childIndex1;
+			} else {
+				child = array[childIndex2];
+				childIndex0 = childIndex2;
+			}
+		} else if (childIndex1 < size) {
+			child = array[childIndex1];
+			childIndex0 = childIndex1;
+		} else if (childIndex2 < size) {
+			child = array[childIndex2];
+			childIndex0 = childIndex2;
+		} else {
+			child = null;
+		}
+		
+		if (child != null) {
+			HeapEntry<E> parent = array[index];
+			if (compare(parent.entry, child.entry) > 0) {
+				array[index] = child;
+				array[childIndex0] = parent;
+				child.position = childIndex0;
+				parent.position = index;
+				percolateDown(childIndex0);
+			}
+		}
 	}
 	
 	private void reallocate() {
 		array = Arrays.copyOf(array, size*2);
 	}
 	
-	private int parentIndex(int a) {
-		return (a-1)/2;
-	}
-	
+	@SuppressWarnings("unchecked") // FIXME @SuppressWarnings("unchecked") 
 	private int compare(E e1, E e2) {
-		return (cmp==null) ? e1.compareTo(e2) : cmp.compare(e1, e2);
+		return (cmp==null) ? ((Comparable<E>) e1).compareTo(e2) : cmp.compare(e1, e2);
 	}
 	
-	private class Comp<E extends Comparable<E>> implements Comparator<E> {
+	private class Itr implements Iterator<E> {
+		int cursor = 0;
+		
+	    /**
+	     * Returns <tt>true</tt> if the iteration has more elements. (In other
+	     * words, returns <tt>true</tt> if <tt>next</tt> would return an element
+	     * rather than throwing an exception.)
+	     *
+	     * @return <tt>true</tt> if the iterator has more elements.
+	     */
 		@Override
-		public int compare(E o1, E o2) {
-			return o1.compareTo(o2);
+		public boolean hasNext() {
+			return cursor < size;
+		}
+		
+	    /**
+	     * Returns the next element in the iteration.
+	     *
+	     * @return the next element in the iteration.
+	     * @exception NoSuchElementException iteration has no more elements.
+	     */
+		@Override
+		public E next() {
+			if (!hasNext()) {
+				throw new NoSuchElementException();
+			}
+			return array[cursor++].entry;
+		}
+		
+	    /**
+	     * Removes from the underlying collection the last element returned by the
+	     * iterator (optional operation).  This method can be called only once per
+	     * call to <tt>next</tt>.  The behavior of an iterator is unspecified if
+	     * the underlying collection is modified while the iteration is in
+	     * progress in any way other than by calling this method.
+	     *
+	     * @exception UnsupportedOperationException if the <tt>remove</tt>
+	     *		  operation is not supported by this Iterator.
+	     *
+	     * @exception IllegalStateException if the <tt>next</tt> method has not
+	     *		  yet been called, or the <tt>remove</tt> method has already
+	     *		  been called after the last call to the <tt>next</tt>
+	     *		  method.
+	     */
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
 		}
 	}
 }
