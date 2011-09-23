@@ -179,24 +179,19 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	 */
 	private void percolateDown(int index) {
 		int childIndex1 = index*2+1;
-		int childIndex2 = index*2+2;
+		int childIndex2 = childIndex1 + 1;
 		int childIndex0 = 0;
-		HeapEntry<E> child;
-
-		if (childIndex1 < size && childIndex2 < size) {
-			if (compare(array[childIndex1].entry, array[childIndex2].entry) < 0) {
-				child = array[childIndex0 = childIndex1];
-			} else {
-				child = array[childIndex0 = childIndex2];
-			}
-		} else if (childIndex1 < size) {
+		HeapEntry<E> child = null;
+		
+		if (childIndex1 < size) {
 			child = array[childIndex0 = childIndex1];
-		} else if (childIndex2 < size) {
-			child = array[childIndex0 = childIndex2];
-		} else {
-			child = null;
 		}
-
+		if (childIndex2 < size &&
+				compare(array[childIndex1].entry,
+						array[childIndex2].entry) > 0) {
+			child = array[childIndex0 = childIndex2];
+		}
+		
 		if (child != null) {
 			HeapEntry<E> parent = array[index];
 			if (compare(parent.entry, child.entry) > 0) {
@@ -209,10 +204,10 @@ public class BinaryHeap<E> extends AbstractQueue<E> implements Queue<E> {
 	private void swap(HeapEntry<E> e1, HeapEntry<E> e2) {
 		int index1 = e1.position;
 		int index2 = e2.position;
+		e1.position = index2;
+		e2.position = index1;
 		array[index1] = e2;
-		array[index1].position = index1;
 		array[index2] = e1;
-		array[index2].position = index2;
 	}
 
 	private void reallocate() {
